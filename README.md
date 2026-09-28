@@ -1,58 +1,88 @@
-# Torch2RTL Planner (Software Prototype)
+# PyTorch Computational Graph Architecture Explorer
 
-A Python-only research prototype inspired by AI-to-RTL toolchains. It **does not synthesize or deploy to FPGA hardware**. Instead, it focuses on the software/compiler side:
+A software-only Python project for analysing PyTorch models with `torch.fx`.
 
-1. Load or construct a PyTorch model
-2. Trace its computational graph with `torch.fx`
-3. Extract supported layers and tensor shapes
-4. Estimate MACs, parameters, memory and latency proxies
-5. Choose configurable fixed-point and parallelism settings
-6. Generate **SystemVerilog skeleton modules** (not production RTL)
-7. Generate an RTL hierarchy manifest and synthesis-planning report
-8. Validate the PyTorch model against a software fixed-point simulator
+The project focuses on computational-graph inspection, model-structure analysis, reproducible benchmarking, and comparison of software/model configurations. It does **not** generate RTL, SystemVerilog, FPGA/ASIC designs, or hardware implementation artifacts.
 
-## Why this is intentionally different
+## Features
 
-The thesis description targets a full end-to-end synthesizable FPGA/ASIC flow. This project is deliberately adapted into a **software architecture exploration and RTL planning tool**. It demonstrates PyTorch graph analysis, compiler-style intermediate representation, quantization simulation, design-space exploration and code generation without requiring Vivado/Quartus or physical FPGA hardware.
+- Build or load small PyTorch models
+- Trace models with `torch.fx`
+- Extract operations and graph dependencies
+- Capture tensor shapes where available
+- Count trainable parameters
+- Estimate multiply-accumulate operations for supported layers
+- Compare model configurations using software-oriented metrics
+- Export analysis results to JSON
+- Run reproducible experiments with fixed random seeds
+- Validate the analysis workflow with Pytest
 
-## Supported model layers
+## Supported layers
+
+The current analyser recognises common PyTorch modules including:
 
 - `nn.Linear`
+- `nn.Conv2d`
 - `nn.ReLU`
 - `nn.Flatten`
-- `nn.Conv2d`
 - `nn.MaxPool2d`
 - `nn.AdaptiveAvgPool2d`
-- common FX operations such as reshape/flatten are recorded as generic operations
+
+Other FX graph nodes are preserved as generic operations where possible.
 
 ## Quick start
 
 ```bash
 python -m venv .venv
-# Windows:
+
+# Windows
 .venv\Scripts\activate
-# Linux/macOS:
+
+# Linux/macOS
 source .venv/bin/activate
 
 pip install -r requirements.txt
-python examples/train_demo.py
-python main.py --checkpoint outputs/demo_mlp.pth --model demo_mlp --input-shape 1,16
+python train_demo.py
+python main.py --model demo_mlp --input-shape 1,16
 ```
 
 CNN example:
 
 ```bash
-python main.py --model tiny_cnn --input-shape 1,1,28,28 --word-bits 16 --frac-bits 8 --parallelism 4
+python main.py --model tiny_cnn --input-shape 1,1,28,28 --out generated
 ```
 
-Generated files are placed under `generated/`:
-- `model_ir.json`
-- `planning_report.md`
-- `rtl_hierarchy.json`
-- `rtl/*.sv`
-- `build_manifest.json`
-- `verification.json`
+The analysis is written to:
 
-## Important limitation
+```
+generated/model_analysis.json
+```
 
-Generated SystemVerilog is an **interface/architecture skeleton for study and extension**, not a claim of bit-accurate, production-ready synthesizable neural-network RTL. The project is intended for a Computer Science thesis portfolio where the emphasis is Python, PyTorch, graph transformation, quantization, software architecture and automated code generation.
+## Example metrics
+
+The report includes:
+
+- graph node count
+- operation types
+- tensor shapes
+- trainable parameter count
+- estimated MACs for supported layers
+- dependency relationships
+- model output shape
+
+## Project purpose
+
+This repository is intended as a Computer Science portfolio project demonstrating:
+
+- Python software development
+- PyTorch and PyTorch FX
+- computational-graph analysis
+- structured intermediate representations
+- model inspection
+- reproducible experimentation
+- automated testing
+- JSON-based reporting
+
+## Scope
+
+This is a software-analysis project. It intentionally excludes RTL generation, SystemVerilog, fixed-point hardware design, FPGA/ASIC implementation, synthesis, place-and-route, and physical hardware deployment.
