@@ -1,30 +1,37 @@
-# Project: PyTorch Model-to-RTL Architecture Explorer
+# Project: PyTorch Computational Graph Architecture Explorer
 
 ## Problem
-AI deployment on embedded accelerators requires understanding model structure, numeric precision, memory cost and computational parallelism before hardware implementation.
 
-## Adapted objective
-Build a Python software tool that converts PyTorch models into a compiler-style intermediate representation and automatically produces fixed-point simulation results, architecture estimates, an RTL hierarchy, and SystemVerilog scaffolding.
+Machine-learning models can become difficult to inspect as their computational structure grows. Developers often need a clear view of operations, dependencies, tensor shapes, parameter counts, and computational cost before comparing or optimizing model configurations.
 
-## Main software components
-- PyTorch model loader
-- `torch.fx` graph parser
-- Layer/shape/parameter/MAC analyzer
-- Fixed-point quantization simulator
-- Parallelism and latency estimator
-- SystemVerilog template generator
-- JSON hierarchy/build manifests
-- Markdown planning report
-- Automated tests
+## Objective
 
-## Difference from the Ericsson thesis
-This implementation intentionally stops before FPGA synthesis, place-and-route, bitstream generation and physical deployment. It is therefore suitable as a software/Computer Science portfolio prototype rather than a reproduction of Ericsson's internal thesis work.
+Build a Python software tool that traces PyTorch models with `torch.fx`, converts the traced graph into a structured intermediate representation, and generates reproducible analysis reports.
 
-## Possible thesis evaluation
-Compare several PyTorch architectures using:
-- graph conversion coverage
-- parameter and MAC extraction accuracy
-- quantization error
-- estimated memory usage
-- idealized cycle count under different parallelism
-- generated-code coverage by layer type
+## Main components
+
+- PyTorch model definitions
+- `torch.fx` graph tracing
+- operation and dependency extraction
+- tensor-shape inspection
+- parameter counting
+- MAC estimation for supported layers
+- structured JSON reporting
+- reproducible experiment configuration
+- automated Pytest validation
+
+## Evaluation
+
+The project can compare several PyTorch architectures using:
+
+- graph node count
+- operation coverage
+- parameter count
+- estimated MACs
+- output tensor shape
+- dependency structure
+- repeatability of generated reports
+
+## Scope
+
+This repository is software-only. It does not perform RTL generation, SystemVerilog generation, hardware mapping, fixed-point hardware design, FPGA/ASIC synthesis, or physical deployment.
