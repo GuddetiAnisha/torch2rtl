@@ -1,30 +1,50 @@
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+import json
+
 import torch
-from torch2rtl.models import DemoMLP, TinyCNN
-from torch2rtl.analyzer import analyze_model
-from torch2rtl.quant import quantize_tensor
-from torch2rtl.planner import make_plan
+
+from main import DemoMLP, TinyCNN, analyze_model
+
 
 def test_mlp_analysis():
-    _, layers = analyze_model(DemoMLP(), torch.randn(1,16))
-    assert any(x.op == "Linear" for x in layers)
-    assert sum(x.params for x in layers) > 0
+    report = analyze_model(DemoMLP(), torch.randn(1, 16))
+
+    assert report["model"] == "DemoMLP"
+    assert report["output_shape"] == [1, 4]
+    assert report["trainable_parameters"] > 0
+    assert report["estimated_macs"] > 0
+    assert report["graph_node_count"] > 0
+
 
 def test_cnn_analysis():
-    _, layers = analyze_model(TinyCNN(), torch.randn(1,1,28,28))
-    assert any(x.op == "Conv2d" for x in layers)
-    assert sum(x.macs for x in layers) > 0
+    report = analyze_model(TinyCNN(), torch.randn(1, 1, 28, 28))
 
-def test_quantization_range():
-    x = torch.tensor([-1000.0, -0.3, 0.3, 1000.0])
-    q = quantize_tensor(x, 8, 4)
-    assert q.max() <= 127/16
-    assert q.min() >= -128/16
+    assert report["model"] == "TinyCNN"
+    assert report["output_shape"] == [1, 4]
+    assert report["trainable_parameters"] > 0
+    assert report["estimated_macs"] > 0
 
-def test_parallel_plan():
-    _, layers = analyze_model(DemoMLP(), torch.randn(1,16))
-    p1 = make_plan(layers, parallelism=1)
-    p4 = make_plan(layers, parallelism=4)
-    assert p4.estimated_cycles <= p1.estimated_cycles
+
+def test_dependency_information_present():
+    report = analyze_model(DemoMLP(), torch.randn(1, 16))
+
+    assert any(node["inputs"] for node in report["nodes"] if node["op"] != "placeholder")
+
+
+def test_report_is_json_serializable():
+    report = analyze_model(DemoMLP(), torch.randn(1, 16))
+    encoded = json.dumps(report)
+
+    assert "DemoMLP" in encoded
+    assert "estimated_macs" in encoded
+
+
+def test_analysis_is_repeatable_for_structure():
+    torch.manual_seed(7)
+    report_a = analyze_model(DemoMLP(), torch.randn(1, 16))
+
+    torch.manual_seed(7)
+    report_b = analyze_model(DemoMLP(), torch.randn(1, 16))
+
+    assert report_a["graph_node_count"] == report_b["graph_node_count"]
+    assert report_a["trainable_parameters"] == report_b["trainable_parameters"]
+    assert report_a["estimated_macs"] == report_b["estimated_macs"]
