@@ -54,7 +54,7 @@ python main.py --model tiny_cnn --input-shape 1,1,28,28 --out generated
 
 The analysis is written to:
 
-```
+```text
 generated/model_analysis.json
 ```
 
@@ -69,6 +69,26 @@ The report includes:
 - estimated MACs for supported layers
 - dependency relationships
 - model output shape
+
+## Validation
+
+The current implementation has been validated against native PyTorch model statistics for both the built-in `DemoMLP` and `TinyCNN` examples.
+
+Observed validation results:
+
+- Automated test suite: **5/5 tests passed**
+- `DemoMLP` parameter count: analyser **676**, PyTorch **676**
+- `DemoMLP` estimated MACs: **640**
+- `DemoMLP` graph nodes: **5**
+- `DemoMLP` output shape: **[1, 4]**
+- `TinyCNN` parameter count: analyser **1,316**, PyTorch **1,316**
+- `TinyCNN` estimated MACs: **282,304**
+- `TinyCNN` graph nodes: **10**
+- `TinyCNN` output shape: **[1, 4]**
+- Repeated analysis produces consistent structural results
+- JSON report generation and dependency extraction are covered by automated tests
+
+The validation is architecture-level rather than dataset-accuracy validation because this project analyses model structure rather than predictive performance.
 
 ## Project purpose
 
